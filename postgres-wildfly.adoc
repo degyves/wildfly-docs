@@ -51,7 +51,7 @@ jdbc-driver-info
 	
 ----
 
-Non-XA:
+# Non-XA (use this if you don't know what XA is):
 
 /subsystem=datasources/jdbc-driver=postgres:add(driver-name="postgres",driver-module-name="org.postgres",driver-class-name=org.postgresql.Driver)
 
@@ -71,6 +71,8 @@ XA:
 ----
 
 ver-name=postgres --user-name=postgres --password=postgres
+
+# Use this as an example
 
 data-source add --jndi-name=java:/PostgresDS --name=PostgresDS \
 --connection-url=jdbc:postgresql://localhost/hotware \
