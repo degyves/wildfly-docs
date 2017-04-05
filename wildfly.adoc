@@ -1,0 +1,44 @@
+
+jboss-cli.sh --connect --command="deploy --force [PATH_TO_WAR]"
+
+O desde el shell de jboss-cli:
+
+----
+connect
+deploy --force [PATH_TO_WAR]
+----
+
+
+Undeploying an application works adequately:
+
+
+jboss-cli.sh --connect --command="undeploy x-ray.war"
+
+jboss-cli.sh --connect --command="undeploy prototipo.war"
+
+O desde el shell de jboss-cli:
+
+----
+connect
+undeploy prototipo.war
+----
+
+Para quitar aplicaciones con el wildfly apagado, editar el archivo :
+
+----
+${WILDFLY_HOME}/standalone/configuration/standalone.xml
+----
+Y busarlo y eliminarlo dentro del tag `<deployments>...</deployments>`.
+
+. Reload server
+
+----
+/:reload
+----
+
+. Shutdown server
+
+----
+:shutdown
+----
+

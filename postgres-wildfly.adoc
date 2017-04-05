@@ -1,0 +1,165 @@
+1. Start up JBoss / Wildfly application server 
+2. Enter $WILDFLY_HOME/bin and launch the CLI:
+	
+----
+jboss-cli.sh
+----
+
+3. Connect to the server:
+
+----
+connect
+----
+
+4. Install module containing the JDBC Driver. Specify the module name and the location where the jdbc driver has been downloaded:
+
+----
+
+module add --name=org.postgres \
+--resources=/Users/victor/.m2/repository/org/postgresql/postgresql/9.4.1208.jre7/postgresql-9.4.1208.jre7.jar \
+--dependencies=javax.api,javax.transaction.api
+
+module add --name=org.apache.jena \
+--resources=/Users/victor/.m2/repository/org/apache/jena/jena-jdbc-driver-tdb/3.2.0/jena-jdbc-driver-tdb-3.2.0.jar \
+--dependencies=javax.api,javax.transaction.api
+
+module add --name=org.apache.jena \
+--resources=/Users/victor/.m2/repository/org/apache/jena/jena-jdbc-driver-bundle/3.2.0-SNAPSHOT/jena-jdbc-driver-bundle-3.2.0-SNAPSHOT.jar \
+--dependencies=javax.api,javax.transaction.api
+
+module add --name=org.apache.jena --resources=~/.m2/repository/org/apache/jena/jena-jdbc-driver-bundle/3.2.0/jena-jdbc-driver-bundle-3.2.0.jar --dependencies=javax.api,javax.transaction.api
+
+
+----
+
+Delete module:
+
+----
+module remove --name=org.apache.jena
+----
+
+modules installed:
+
+----
+jdbc-driver-info
+----
+
+
+5. Now install the JDBC Driver on the application server:
+	
+----
+
+Non-XA:
+
+/subsystem=datasources/jdbc-driver=postgres:add(driver-name="postgres",driver-module-name="org.postgres",driver-class-name=org.postgresql.Driver)
+
+/subsystem=datasources/jdbc-driver=jena:add(driver-name="jena",driver-module-name="org.apache.jena",driver-class-name=org.apache.jena.jdbc.tdb.TDBDriver)
+
+/subsystem=datasources/jdbc-driver=jena:add(driver-name="jena",driver-module-name="org.apache.jena")
+
+
+XA: 
+
+/subsystem=datasources/jdbc-driver=postgres-xa:add(driver-name="postgres-xa",driver-module-name="org.postgres",driver-xa-datasource-class-name=org.postgresql.xa.PGXADataSource)
+
+-----
+
+6. Install a non-xa-datasource which will connect to the default "postgres" database on localhost:
+
+----
+
+ver-name=postgres --user-name=postgres --password=postgres
+
+data-source add --jndi-name=java:/PostgresDS --name=PostgresDS \
+--connection-url=jdbc:postgresql://localhost/hotware \
+--driver-name=postgres --user-name=postgres --password=postgres
+
+data-source add --jndi-name=java:/persons --name=persons \
+--connection-url=jdbc:postgresql://localhost/persons \
+--driver-name=postgres --user-name=postgres --password=postgres
+
+data-source add --jndi-name=java:/telephones --name=telephones \
+--connection-url=jdbc:postgresql://localhost/telephones\
+--driver-name=postgres --user-name=postgres --password=postgres
+
+data-source add --jndi-name=java:/contacts --name=contacts \
+--connection-url=jdbc:postgresql://localhost/contacts \
+--driver-name=postgres --user-name=postgres --password=postgres
+
+data-source add --jndi-name=java:/personsuk --name=personsuk \
+--connection-url=jdbc:postgresql://localhost/personsuk \
+--driver-name=postgres --user-name=postgres --password=postgres
+
+data-source add --jndi-name=java:/personsus --name=personsus \
+--connection-url=jdbc:postgresql://localhost/personsus \
+--driver-name=postgres-xa --user-name=postgres --password=postgres
+
+data-source add --jndi-name=java:/db_name --name=db_name \
+--connection-url=jdbc:postgresql://localhost/db_name \
+--driver-name=postgres --user-name=postgres --password=postgres
+
+data-source add --jndi-name=java:/PostgresDS --name=PostgresDS \
+--connection-url=jdbc:postgresql://localhost/db_name \
+--driver-name=postgres --user-name=postgres --password=postgres
+
+
+----
+
+6. Or install a xa-datasource:
+
+From https://docs.jboss.org/author/display/AS71/CLI+Recipes#CLIRecipes-Listdescriptionofavailableattributesandchilds
+
+----
+
+xa-data-source add \
+    --name=personsus \
+    --driver-name=postgres-xa \
+    --jndi-name=java:/personsus \
+    --user-name=postgres \
+    --password=postgres \
+    --recovery-username=postgres \
+    --recovery-password=postgres \
+    --use-ccm=false \
+    --max-pool-size=25 \
+    --blocking-timeout-wait-millis=5000 \
+    --new-connection-sql="set datestyle = ISO, European;" \
+    --xa-datasource-properties=\
+    [{ServerName=localhost,PortNumber=5432,DatabaseName=personsus}]
+
+xa-data-source add \
+    --name=personsuk \
+    --driver-name=postgres-xa \
+    --jndi-name=java:/personsuk \
+    --user-name=postgres \
+    --password=postgres \
+    --recovery-username=postgres \
+    --recovery-password=postgres \
+    --use-ccm=false \
+    --max-pool-size=25 \
+    --blocking-timeout-wait-millis=5000 \
+    --new-connection-sql="set datestyle = ISO, European;" \
+    --xa-datasource-properties=\
+    [{ServerName=localhost,PortNumber=5432,DatabaseName=personsuk}]
+
+----
+
+7. To delete a data-source:
+
+----
+
+data-source remove --name=personsuk
+data-source remove --name=personsus
+xa-data-source remove --name=personsuk
+xa-data-source remove --name=personsus
+
+----
+
+8. To show the current datasources (XA and non-XA) on the server:
+
+----
+
+/subsystem=datasources:read-resource
+
+----
+
+
